@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/gorilla/handlers"
 	productsV1 "layout/api/products/v1"
 	quizzesV1 "layout/api/quizzes/v1"
 	usersV1 "layout/api/users/v1"
@@ -48,6 +49,17 @@ func NewHTTPServer(
 				metrics.WithSeconds(seconds),
 			),
 		),
+	}
+	if c.Http.GetCors().GetEnabled() {
+		allowHeaders := c.Http.GetCors().GetAllowHeaders()
+		allowMethods := c.Http.GetCors().GetAllowMethods()
+		allowOrigins := c.Http.GetCors().GetAllowOrigins()
+		cors := handlers.CORS(
+			handlers.AllowedHeaders(allowHeaders),
+			handlers.AllowedMethods(allowMethods),
+			handlers.AllowedOrigins(allowOrigins),
+		)
+		opts = append(opts, http.Filter(cors))
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))
