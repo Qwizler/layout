@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  pg:
+    image: postgres:16.6-alpine3.21
+    container_name: qwizler-postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: pg
+      POSTGRES_PASSWORD: pg
+      POSTGRES_DB: users
+  mongo:
+    image: mongo:7.0
+    container_name: qwizler-mongodb
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+
+  init-surreal:
+    image: busybox
+    command: chmod -R 777 /data
+    volumes:
+      - ./data:/data
+
+  surreal:
+    image: surrealdb/surrealdb:latest
+    container_name: qwizler-surrealdb
+    restart: always
+    command: start --user root --pass root file:/data/database.db
+    depends_on:
+      init-surreal:
+        condition: service_completed_successfully
+    ports:
+      - 8800:8000
+    volumes:
+      - ./data:/data
